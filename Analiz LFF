@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import streamlit as st
+from scipy.signal import TransferFunction, bode, lti
+
+# Функція для побудови ЛАЧХ, ЛФЧХ та аналізу стійкості
+def analyze_stability(k, T, x_t):
+    # Передавальна функція W(p) = k / ((p+1)(Tp+1))
+    num = [k]
+    den = [T, T+1, 1]
+    system = TransferFunction(num, den)
+    
+    # Частотний діапазон
+    w = np.logspace(-2, 2, 1000)
+    w, mag, phase = bode(system, w)
+    
+    # Побудова ЛАЧХ
+    plt.figure(figsize=(8, 6))
+    plt.semilogx(w, mag, label='LACH')
+    plt.xlabel('Частота (рад/с)')
+    plt.ylabel('Амплітуда (дБ)')
+    plt.title('Логарифмічна амплітудно-частотна характеристика')
+    plt.grid(which='both', linestyle='--')
+    st.pyplot(plt)
+    
+    # Побудова ЛФЧХ
+    plt.figure(figsize=(8, 6))
+    plt.semilogx(w, phase, label='LFCH', color='red')
+    plt.xlabel('Частота (рад/с)')
+    plt.ylabel('Фаза (градуси)')
+    plt.title('Логарифмічна фазо-частотна характеристика')
+    plt.grid(which='both', linestyle='--')
+    st.pyplot(plt)
+    
+    # Аналіз стійкості за критерієм Найквіста
+    system_lti = lti(num, den)
+    w, h = system_lti.freqresp(w)
+    
+    plt.figure(figsize=(6, 6))
+    plt.plot(h.real, h.imag, label='Контур Найквіста')
+    plt.plot(h.real, -h.imag, linestyle='dashed', color='gray')
+    plt.axhline(0, color='black', linewidth=0.5)
+    plt.axvline(0, color='black', linewidth=0.5)
+    plt.xlabel('Re')
+    plt.ylabel('Im')
+    plt.title('Критерій Найквіста')
+    plt.grid()
+    st.pyplot(plt)
+    
+# Інтерфейс Streamlit
+st.title('Аналіз стійкості динамічної системи')
+
+# Введення параметрів вручну
+k = st.number_input('Коефіцієнт підсилення k', min_value=0.01, max_value=10.0, value=1.0, step=0.01)
+T = st.number_input('Часова стала T', min_value=0.01, max_value=10.0, value=1.0, step=0.01)
+x_t = st.text_input('Функція x(t)', 'sin(t)')
+
+# Аналіз при натисканні кнопки
+if st.button('Аналізувати стійкість'):
+    analyze_stability(k, T, x_t)
