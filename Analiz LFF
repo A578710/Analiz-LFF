@@ -3,11 +3,8 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from scipy.signal import TransferFunction, bode, lti
 
-# Функція для побудови ЛАЧХ, ЛФЧХ та аналізу стійкості
-def analyze_stability(k, T, x_t):
-    # Передавальна функція W(p) = k / ((p+1)(Tp+1))
-    num = [k]
-    den = [T, T+1, 1]
+# Функція для аналізу стійкості
+def analyze_stability(num, den, x_t):
     system = TransferFunction(num, den)
     
     # Частотний діапазон
@@ -16,7 +13,7 @@ def analyze_stability(k, T, x_t):
     
     # Побудова ЛАЧХ
     plt.figure(figsize=(8, 6))
-    plt.semilogx(w, mag, label='LACH')
+    plt.semilogx(w, mag, label='ЛАЧХ')
     plt.xlabel('Частота (рад/с)')
     plt.ylabel('Амплітуда (дБ)')
     plt.title('Логарифмічна амплітудно-частотна характеристика')
@@ -25,7 +22,7 @@ def analyze_stability(k, T, x_t):
     
     # Побудова ЛФЧХ
     plt.figure(figsize=(8, 6))
-    plt.semilogx(w, phase, label='LFCH', color='red')
+    plt.semilogx(w, phase, label='ЛФЧХ', color='red')
     plt.xlabel('Частота (рад/с)')
     plt.ylabel('Фаза (градуси)')
     plt.title('Логарифмічна фазо-частотна характеристика')
@@ -50,11 +47,17 @@ def analyze_stability(k, T, x_t):
 # Інтерфейс Streamlit
 st.title('Аналіз стійкості динамічної системи')
 
-# Введення параметрів вручну
-k = st.number_input('Коефіцієнт підсилення k', min_value=0.01, max_value=10.0, value=1.0, step=0.01)
-T = st.number_input('Часова стала T', min_value=0.01, max_value=10.0, value=1.0, step=0.01)
+# Введення коефіцієнтів передавальної функції
+num_input = st.text_input('Чисельник передавальної функції (через коми)', '10')
+den_input = st.text_input('Знаменник передавальної функції (через коми)', '0.05, 1.05, 1')
+
+# Перетворення введених рядків у списки чисел
+num = list(map(float, num_input.split(',')))
+den = list(map(float, den_input.split(',')))
+
+# Введення функції x(t)
 x_t = st.text_input('Функція x(t)', 'sin(t)')
 
 # Аналіз при натисканні кнопки
 if st.button('Аналізувати стійкість'):
-    analyze_stability(k, T, x_t)
+    analyze_stability(num, den, x_t)
